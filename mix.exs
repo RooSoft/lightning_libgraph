@@ -14,7 +14,7 @@ defmodule LightningLibgraph.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :inets, :ssl]
     ]
   end
 
@@ -23,7 +23,9 @@ defmodule LightningLibgraph.MixProject do
     [
       {:csv, "~> 2.4"},
       {:libgraph, "~> 0.13.3"},
-      {:hackney, "~> 1.18"}
+      {:hackney, "~> 1.18"},
+      {:lnd_client, git: "https://github.com/RooSoft/lnd_client.git", tag: "0.1.2"},
+      {:jason, "~> 1.2"}
     ]
   end
 end
