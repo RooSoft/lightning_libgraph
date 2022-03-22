@@ -24,3 +24,5 @@ lightning_libgraph-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+config/config.secret.exs
