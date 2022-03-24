@@ -21,8 +21,7 @@ defmodule LightningLibgraph do
   end
 
   def load_graph do
-    Graph.new()
-    |> Lnd.GraphDownloader.load(
+    Lnd.GraphDownloader.load(
       Application.fetch_env!(:lightning_libgraph, :cert),
       Application.fetch_env!(:lightning_libgraph, :macaroon),
       Application.fetch_env!(:lightning_libgraph, :url),
