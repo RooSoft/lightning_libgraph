@@ -25,7 +25,7 @@ defmodule LightningLibgraph do
       Application.fetch_env!(:lightning_libgraph, :cert),
       Application.fetch_env!(:lightning_libgraph, :macaroon),
       Application.fetch_env!(:lightning_libgraph, :url),
-      min_channel_size: 5_000_000
+      amount: 500_000
     )
 
     get_messages()
