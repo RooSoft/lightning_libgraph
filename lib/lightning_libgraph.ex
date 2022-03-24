@@ -1,8 +1,22 @@
 defmodule LightningLibgraph do
+  use Supervisor
+
   alias LightningLibgraph.Lnd
 
+  def start_link(init_arg) do
+    Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+  end
+
+  @impl true
+  def init(_init_arg) do
+    children = [
+      Lnd.GraphDownloader
+    ]
+
+    Supervisor.init(children, strategy: :one_for_one)
+  end
+
   def load_graph do
-    Lnd.GraphDownloader.start_link(nil)
     Lnd.GraphDownloader.subscribe()
 
     Graph.new()
