@@ -16,14 +16,17 @@ defmodule LightningLibgraph do
     Supervisor.init(children, strategy: :one_for_one)
   end
 
-  def load_graph do
+  def subscribe_events do
     Lnd.GraphDownloader.subscribe()
+  end
 
+  def load_graph do
     Graph.new()
     |> Lnd.GraphDownloader.load(
       Application.fetch_env!(:lightning_libgraph, :cert),
       Application.fetch_env!(:lightning_libgraph, :macaroon),
-      Application.fetch_env!(:lightning_libgraph, :url)
+      Application.fetch_env!(:lightning_libgraph, :url),
+      min_channel_size: 5_000_000
     )
 
     get_messages()

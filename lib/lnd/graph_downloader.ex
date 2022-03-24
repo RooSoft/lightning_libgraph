@@ -22,8 +22,8 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
     {:ok, state}
   end
 
-  def load(g, cert, macaroon, url) do
-    GenServer.cast(__MODULE__, {:load, {g, cert, macaroon, url}})
+  def load(g, cert, macaroon, url, args \\ []) do
+    GenServer.cast(__MODULE__, {:load, {g, cert, macaroon, url, args}})
   end
 
   def subscribe() do
@@ -41,7 +41,9 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
   end
 
   @impl true
-  def handle_cast({:load, {g, cert, macaroon, url}}, state) do
+  def handle_cast({:load, {g, cert, macaroon, url, args}}, state) do
+    [min_channel_size: min_channel_size] = args
+
     send_to_subscribers({:downloading}, state.subscribers, :load)
 
     lnd_graph = get_graph(cert, macaroon, url)
@@ -62,6 +64,11 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
     final_graph =
       graph["edges"]
       |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
+      |> Enum.filter(fn edge ->
+        {capacity, _} = Integer.parse(edge["capacity"])
+
+        capacity >= min_channel_size
+      end)
       |> Channels.insert(graph_with_nodes)
 
     send_to_subscribers({:done, final_graph}, state.subscribers, :load)
