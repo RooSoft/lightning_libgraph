@@ -50,30 +50,40 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
 
     send_to_subscribers({:parsing}, state.subscribers, :load)
 
-    graph = Jason.decode!(lnd_graph)
+    graph = parse(lnd_graph)
 
     send_to_subscribers({:importing_nodes}, state.subscribers, :load)
 
-    graph_with_nodes =
-      graph["nodes"]
-      |> Enum.filter(fn node -> node["last_update"] > 0 end)
-      |> Nodes.insert(g)
+    g = import_nodes(graph["nodes"], g)
 
     send_to_subscribers({:importing_channels}, state.subscribers, :load)
 
-    final_graph =
-      graph["edges"]
-      |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
-      |> Enum.filter(fn edge ->
-        {capacity, _} = Integer.parse(edge["capacity"])
+    g = import_channels(graph["edges"], g, min_channel_size)
 
-        capacity >= min_channel_size
-      end)
-      |> Channels.insert(graph_with_nodes)
-
-    send_to_subscribers({:done, final_graph}, state.subscribers, :load)
+    send_to_subscribers({:done, g}, state.subscribers, :load)
 
     {:noreply, state}
+  end
+
+  defp parse(lnd_graph) do
+    Jason.decode!(lnd_graph)
+  end
+
+  defp import_nodes(nodes, g) do
+    nodes
+    |> Enum.filter(fn node -> node["last_update"] > 0 end)
+    |> Nodes.insert(g)
+  end
+
+  defp import_channels(edges, g, min_channel_size) do
+    edges
+    |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
+    |> Enum.filter(fn edge ->
+      {capacity, _} = Integer.parse(edge["capacity"])
+
+      capacity >= min_channel_size
+    end)
+    |> Channels.insert(g)
   end
 
   defp get_headers(macaroon_filename) do
