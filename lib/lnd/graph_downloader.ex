@@ -1,8 +1,7 @@
 defmodule LightningLibgraph.Lnd.GraphDownloader do
   use GenServer
 
-  alias LightningLibgraph.Lnd.GraphDownloader.Channels
-  alias LightningLibgraph.Lnd.GraphDownloader.Nodes
+  alias LightningLibgraph.Lnd.GraphDownloader.{Http, Channels, Nodes}
 
   def start_link(_) do
     GenServer.start_link(
@@ -46,7 +45,7 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
 
     send_to_subscribers({:downloading}, state.subscribers, :load)
 
-    lnd_graph = get_graph(cert, macaroon, url)
+    lnd_graph = Http.get_graph(cert, macaroon, url)
 
     send_to_subscribers({:parsing}, state.subscribers, :load)
 
@@ -54,11 +53,11 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
 
     send_to_subscribers({:importing_nodes}, state.subscribers, :load)
 
-    g = import_nodes(graph["nodes"], g)
+    g = Nodes.import(graph["nodes"], g)
 
     send_to_subscribers({:importing_channels}, state.subscribers, :load)
 
-    g = import_channels(graph["edges"], g, min_channel_size)
+    g = Channels.import(graph["edges"], g, min_channel_size)
 
     send_to_subscribers({:done, g}, state.subscribers, :load)
 
@@ -67,47 +66,6 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
 
   defp parse(lnd_graph) do
     Jason.decode!(lnd_graph)
-  end
-
-  defp import_nodes(nodes, g) do
-    nodes
-    |> Enum.filter(fn node -> node["last_update"] > 0 end)
-    |> Nodes.insert(g)
-  end
-
-  defp import_channels(edges, g, min_channel_size) do
-    edges
-    |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
-    |> Enum.filter(fn edge ->
-      {capacity, _} = Integer.parse(edge["capacity"])
-
-      capacity >= min_channel_size
-    end)
-    |> Channels.insert(g)
-  end
-
-  defp get_headers(macaroon_filename) do
-    [
-      {'Grpc-Metadata-macaroon', macaroon_filename |> read_macaroon |> to_charlist}
-    ]
-  end
-
-  defp read_macaroon(macaroon_filename) do
-    File.read!(macaroon_filename) |> Base.encode16()
-  end
-
-  defp get_options(cert_filename) do
-    [ssl: [cacertfile: cert_filename]]
-  end
-
-  defp get_graph(cert_filename, macaroon_filename, url) do
-    headers = get_headers(macaroon_filename)
-    request = {String.to_charlist(url), headers}
-    options = get_options(cert_filename)
-
-    case :httpc.request(:get, request, options, []) do
-      {:ok, {{_v, 200, _m}, _h, body}} -> :erlang.list_to_binary(body)
-    end
   end
 
   defp send_to_subscribers(payload, subscribers, topic) do

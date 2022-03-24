@@ -1,5 +1,16 @@
 defmodule LightningLibgraph.Lnd.GraphDownloader.Channels do
-  def insert(edges, g) do
+  def import(edges, g, min_channel_size) do
+    edges
+    |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
+    |> Enum.filter(fn edge ->
+      {capacity, _} = Integer.parse(edge["capacity"])
+
+      capacity >= min_channel_size
+    end)
+    |> insert(g)
+  end
+
+  defp insert(edges, g) do
     g1 =
       edges
       |> Enum.reduce(g, fn edge, g ->

@@ -1,5 +1,11 @@
 defmodule LightningLibgraph.Lnd.GraphDownloader.Nodes do
-  def insert(nodes, g) do
+  def import(nodes, g) do
+    nodes
+    |> Enum.filter(fn node -> node["last_update"] > 0 end)
+    |> insert(g)
+  end
+
+  defp insert(nodes, g) do
     nodes
     |> Enum.reduce(g, fn node, g ->
       node |> add_node(g)
