@@ -28,15 +28,21 @@ defmodule LightningLibgraph.Lnd.GraphDownloader.Channels do
     destination_node_pub_key = edge["#{destination_node}_pub"]
 
     policy = edge["#{source_node}_policy"]
-    weight = calculate_weight(policy, amount)
+    disabled = policy["disabled"]
 
-    g
-    |> Graph.add_edge(
-      Graph.Edge.new(destination_node_pub_key, source_node_pub_key,
-        label: edge["channel_id"],
-        weight: weight
+    if disabled do
+      g
+    else
+      weight = calculate_weight(policy, amount)
+
+      g
+      |> Graph.add_edge(
+        Graph.Edge.new(destination_node_pub_key, source_node_pub_key,
+          label: edge["channel_id"],
+          weight: weight
+        )
       )
-    )
+    end
   end
 
   defp calculate_weight(policy, amount) do
