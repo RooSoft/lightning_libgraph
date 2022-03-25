@@ -31,6 +31,11 @@ defmodule LightningLibgraph do
     get_messages()
   end
 
+  def remove_channel(g, channel) do
+    g
+    |> Graph.delete_edge(channel.v1, channel.v2, channel.label)
+  end
+
   def get_messages() do
     receive do
       {:graph_downloader, :load, {:downloading}} ->
