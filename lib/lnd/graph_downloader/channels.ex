@@ -32,8 +32,8 @@ defmodule LightningLibgraph.Lnd.GraphDownloader.Channels do
 
     g
     |> Graph.add_edge(
-      Graph.Edge.new(source_node_pub_key, destination_node_pub_key,
-        label: "CHANNEL",
+      Graph.Edge.new(destination_node_pub_key, source_node_pub_key,
+        label: edge["channel_id"],
         weight: weight
       )
     )

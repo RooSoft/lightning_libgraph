@@ -26,3 +26,5 @@ lightning_libgraph-*.tar
 /tmp/
 
 config/config.secret.exs
+
+.iex.exs
