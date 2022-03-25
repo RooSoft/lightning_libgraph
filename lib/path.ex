@@ -2,7 +2,7 @@ defmodule LightningLibgraph.Path do
   alias LightningLibgraph.Path.Tuple
   alias LightningLibgraph.Path.Channels
 
-  def display(path, g) do
+  def to_channels(path, g) do
     path
     |> Channels.from_path(g)
   end
