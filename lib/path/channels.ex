@@ -7,6 +7,7 @@ defmodule LightningLibgraph.Path.Channels do
     |> Enum.reduce([], fn tuple, renders ->
       [convert_tuple_to_channel(tuple, g) | renders]
     end)
+    |> Enum.reverse()
   end
 
   defp convert_tuple_to_channel({node_out, node_in}, g) do
