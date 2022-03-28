@@ -1,7 +1,12 @@
 defmodule LightningLibgraph.Lnd.GraphDownloader.Channels do
-  def import(edges, g, amount) do
+  def import(edges, g, banned_channels, amount) do
     edges
-    |> Enum.filter(fn edge -> edge["last_update"] > 0 end)
+    |> Enum.filter(fn edge ->
+      edge["last_update"] > 0
+    end)
+    |> Enum.filter(fn edge ->
+      !Enum.member?(banned_channels, edge["channel_id"])
+    end)
     |> Enum.filter(fn edge ->
       {capacity, _} = Integer.parse(edge["capacity"])
 
@@ -27,7 +32,7 @@ defmodule LightningLibgraph.Lnd.GraphDownloader.Channels do
     source_node_pub_key = edge["#{source_node}_pub"]
     destination_node_pub_key = edge["#{destination_node}_pub"]
 
-    policy = edge["#{source_node}_policy"]
+    policy = edge["#{destination_node}_policy"]
     disabled = policy["disabled"]
 
     if disabled do

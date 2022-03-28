@@ -41,14 +41,14 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
 
   @impl true
   def handle_cast({:load, {cert, macaroon, url, args}}, state) do
-    [amount: amount] = args
+    [amount: amount, banned_channels: banned_channels] = args
 
     %{g: g} =
       download(cert, macaroon, url, state.subscribers)
       |> parse(state.subscribers)
       |> create_graph()
       |> import_nodes(state.subscribers)
-      |> import_channels(amount, state.subscribers)
+      |> import_channels(amount, banned_channels, state.subscribers)
 
     send_to_subscribers({:done, g}, state.subscribers, :load)
 
@@ -81,10 +81,15 @@ defmodule LightningLibgraph.Lnd.GraphDownloader do
     |> Map.put(:g, g)
   end
 
-  defp import_channels(%{payload: payload, g: g} = context, amount, subscribers) do
+  defp import_channels(
+         %{payload: payload, g: g} = context,
+         amount,
+         banned_channels,
+         subscribers
+       ) do
     send_to_subscribers({:importing_channels}, subscribers, :load)
 
-    g = Channels.import(payload["edges"], g, amount)
+    g = Channels.import(payload["edges"], g, banned_channels, amount)
 
     context
     |> Map.put(:g, g)

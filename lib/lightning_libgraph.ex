@@ -20,12 +20,18 @@ defmodule LightningLibgraph do
     Lnd.GraphDownloader.subscribe()
   end
 
-  def load_graph do
+  def load_graph(options \\ []) do
+    default = [amount: 500_000, banned_channels: []]
+    options = Keyword.merge(default, options)
+    amount = options[:amount]
+    banned_channels = options[:banned_channels]
+
     Lnd.GraphDownloader.load(
       Application.fetch_env!(:lightning_libgraph, :cert),
       Application.fetch_env!(:lightning_libgraph, :macaroon),
       Application.fetch_env!(:lightning_libgraph, :url),
-      amount: 500_000
+      amount: amount,
+      banned_channels: banned_channels
     )
 
     get_messages()
