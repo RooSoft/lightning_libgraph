@@ -8,7 +8,8 @@ defmodule LightningLibgraph.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      LightningLibgraph
+      LightningLibgraph,
+      LndClient
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
